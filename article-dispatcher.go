@@ -8,7 +8,6 @@ import (
     "sync"
     "sync/atomic"
 
-    mapset "github.com/deckarep/golang-set/v2"
     "github.com/dlclark/regexp2"
     "github.com/ikawaha/kagome-dict/ipa"
     "github.com/ikawaha/kagome/v2/tokenizer"
@@ -90,7 +89,7 @@ func (ac *ArticleContext) ParseJapaneseText(field string) []string {
     return ac.JpTokenizer.Wakati(filtered.String())
 }
 
-func newArticleContext(config *Config) ArticleContext {
+func NewArticleContext(config *Config) ArticleContext {
     articleSearchCh := make(chan ArticleMetadata, config.NumArticles)
     articleProcessCh := make(chan Article, config.NumArticles)
 
@@ -183,7 +182,7 @@ func findArticles(config *Config, ac *ArticleContext) {
     }
 }
 
-func CompareArticles(config *Config, ac *ArticleContext, knownWordsList *mapset.Set[string]) {
+func CompareArticles(config *Config, ac *ArticleContext, kwl *KnownWordsList) {
 
     defer ac.Close()
 
@@ -196,7 +195,7 @@ func CompareArticles(config *Config, ac *ArticleContext, knownWordsList *mapset.
     go func() {
         for article := range ac.ArticleSearchCh {
             ac.Wg.Add(1)
-            go ParseArticle(article, config, ac)
+            go ParseArticle(article, config, ac, kwl)
         }
     }()
 

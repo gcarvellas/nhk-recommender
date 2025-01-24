@@ -51,7 +51,7 @@ func getArticleData(article ArticleMetadata, config *Config, ac *ArticleContext)
 	return sb.String(), nil
 }
 
-func ParseArticle(article ArticleMetadata, config *Config, ac *ArticleContext) {
+func ParseArticle(article ArticleMetadata, config *Config, ac *ArticleContext, kwl *KnownWordsList) {
 
 	defer ac.Wg.Done()
 
@@ -77,7 +77,7 @@ func ParseArticle(article ArticleMetadata, config *Config, ac *ArticleContext) {
 		segs.Add(seg)
 	}
 
-	knownWordsList := GetKnownWordsList(ac)
+	knownWordsList := kwl.Get(ac)
 
 	difficulty := float32(segs.Intersect(*knownWordsList).Cardinality()) / float32(segs.Cardinality())
 

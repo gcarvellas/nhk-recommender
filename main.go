@@ -3,8 +3,12 @@ package main
 func main() {
 
     config := ParseConfig()
-    ac := newArticleContext(&config)
+    ac := NewArticleContext(&config)
 
-    go GetKnownWordsList(&ac)
-    CompareArticles(&config, &ac, &knownWordsList)
+    kwl := NewKnownWordsList()
+
+    // Compute this in the background so it's ready when the article parser needs it
+    go kwl.Get(&ac)
+
+    CompareArticles(&config, &ac, &kwl)
 }

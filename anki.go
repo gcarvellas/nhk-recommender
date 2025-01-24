@@ -8,10 +8,25 @@ import (
     "github.com/dlclark/regexp2"
 )
 
-var (
-    knownWordsList mapset.Set[string]
-    calcKnownWordsListOnce sync.Once
-)
+// Only compute the known words list once and store it
+
+type KnownWordsList struct {
+    data mapset.Set[string]
+    once *sync.Once
+}
+
+func NewKnownWordsList() KnownWordsList {
+    data := mapset.NewSet[string]()
+    var once sync.Once
+    return KnownWordsList{data: data, once: &once}
+}
+
+func (kwl *KnownWordsList) Get(ac *ArticleContext) *mapset.Set[string] {
+    kwl.once.Do(func() {
+        kwl.data = generateKnownWordList(ac)
+    })
+    return &kwl.data
+}
 
 func getAnkiCardQuestions() *[]ankiconnect.ResultCardsInfo {
     client := ankiconnect.NewClient()
@@ -97,14 +112,7 @@ func handleCard(card ankiconnect.ResultCardsInfo, cp *CardsProcessor) {
 
 }
 
-func GetKnownWordsList(ac *ArticleContext) *mapset.Set[string] {
-    calcKnownWordsListOnce.Do(func() {
-        knownWordsList = GenerateKnownWordList(ac)
-    })
-    return &knownWordsList
-}
-
-func GenerateKnownWordList(ac *ArticleContext) mapset.Set[string] {
+func generateKnownWordList(ac *ArticleContext) mapset.Set[string] {
 
     log.Println("Gathering cards from anki")
 
